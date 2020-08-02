@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import android.content.Intent;
 import android.os.FileUriExposedException;
 //import android.os.FileUtils;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.app.AppCompatActivity;
@@ -53,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
                 items.remove(position);
                 //notify the adaptor
                 itemsAdaptor.notifyItemRemoved(position);
-                String text = "Item was removed~";
-                Toast.makeText(getApplicationContext(), text , Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Item was removed~" , Toast.LENGTH_SHORT).show();
                 saveItems();
             }
         };
@@ -89,12 +89,31 @@ public class MainActivity extends AppCompatActivity {
                 int position = items.size()-1;
                 itemsAdaptor.notifyItemInserted(position);
                 etItem.setText("");
-                String text = "Item was added~";
-                Toast.makeText(getApplicationContext(), text , Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Item was added~" , Toast.LENGTH_SHORT).show();
                 saveItems();
             }
         });
     }
+    //handle the result of edit activity
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == RESULT_OK && requestCode == EDIT_TEXT_CODE){
+            //Retrieve the updated text value
+            String itemText = data.getStringExtra(KEY_ITEM_TEXT);
+            //Extract the original position of the edited item from the position key
+            int position = data.getExtras().getInt(KEY_ITEM_POSITION);
+            //update the model at the right position with new item text
+            items.set(position, itemText);
+            //notify the adaptor
+            itemsAdaptor.notifyItemChanged(position);
+            //persist the changes
+            saveItems();
+            Toast.makeText(getApplicationContext(), "Item updated successfully!" , Toast.LENGTH_SHORT).show();
+        }else{
+            Log.w("MainActivity", "Unknown call to onActivityResult");
+        }
+    }
+
     private File getDataFile(){
         String child = "data.txt";
         return new File(getFilesDir(), child);
